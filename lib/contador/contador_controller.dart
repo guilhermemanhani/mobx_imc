@@ -1,8 +1,10 @@
 import 'package:mobx/mobx.dart';
+import 'package:mobx_imc/model/full_name.dart';
 
 class ContadorController {
-  var _counter = Observable<int>(0, name: 'counter observable');
-  var _fullName = Observable<FullName>(FullName(first: 'first', last: 'last'));
+  final _counter = Observable<int>(0, name: 'counter observable');
+  final _fullName =
+      Observable<FullName>(FullName(first: 'first', last: 'last'));
   late Action increment;
   late Computed _saudacaoComputed;
 
@@ -33,25 +35,5 @@ class ContadorController {
 
     // ignore: avoid_print
     print(_fullName.value.hashCode);
-  }
-}
-
-class FullName {
-  String first;
-  String last;
-
-  FullName({
-    required this.first,
-    required this.last,
-  });
-
-  FullName copyWith({
-    String? first,
-    String? last,
-  }) {
-    return FullName(
-      first: first ?? this.first,
-      last: last ?? this.last,
-    );
   }
 }
