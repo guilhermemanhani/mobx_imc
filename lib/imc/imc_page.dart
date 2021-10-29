@@ -1,6 +1,9 @@
 import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
+import 'package:mobx/mobx.dart';
+import 'package:mobx_imc/imc/imc_controller.dart';
 import 'package:mobx_imc/widget/imc_gauge.dart';
 
 class ImcPage extends StatefulWidget {
@@ -11,19 +14,40 @@ class ImcPage extends StatefulWidget {
 }
 
 class _ImcPageState extends State<ImcPage> {
-  // final controller = ImcChangeNotifierController();
+  final controller = ImcController();
   final pesoEC = TextEditingController();
   final alturaEC = TextEditingController();
   final formKey = GlobalKey<FormState>();
   var imc = 0.0;
+  final reactionDisposer = <ReactionDisposer>[];
 
-  // @override
-  // void dispose() {
-  //   pesoEC.dispose();
-  //   alturaEC.dispose();
-  //   // controller.dispose();
-  //   super.dispose();
-  // }
+  @override
+  void dispose() {
+    pesoEC.dispose();
+    alturaEC.dispose();
+    // controller.dispose();
+    super.dispose();
+    // ignore: avoid_function_literals_in_foreach_calls
+    reactionDisposer.forEach((reactionDisposer) => reactionDisposer());
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final reactionErrorDisposer = reaction<bool>(
+      (_) => controller.hasError,
+      (hasErro) {
+        if (hasErro) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(controller.error ?? 'Erro!!!'),
+            ),
+          );
+        }
+      },
+    );
+    reactionDisposer.add(reactionErrorDisposer);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +62,11 @@ class _ImcPageState extends State<ImcPage> {
             padding: const EdgeInsets.all(8.0),
             child: Column(
               children: [
-                const ImcGauge(imc: 0),
+                Observer(
+                  builder: (_) {
+                    return ImcGauge(imc: controller.imc);
+                  },
+                ),
                 // AnimatedBuilder(
                 //   animation: controller,
                 //   builder: (context, child) {
@@ -97,7 +125,7 @@ class _ImcPageState extends State<ImcPage> {
                           locale: 'pt_BR', decimalDigits: 2);
                       double peso = formatter.parse(pesoEC.text) as double;
                       double altura = formatter.parse(alturaEC.text) as double;
-                      // controller.calcularIMC(peso: peso, altura: altura);
+                      controller.calcularImc(peso: peso, altura: altura);
                     }
                   },
                   child: const Text('Calcular IMC'),
